@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		#box{
+			box-shadow: 0 0 20px #333;
+		    margin: 20px auto 0;
+		    width: 320px; height: 568px;
+		    position: relative;
+		}
+		#loading, #gameover, #go{
+			position: absolute;
+			width: 100%; height: 100%;
+			background: rgba(128, 128, 128, 0.5);
+			left: 0; top: 0;
+			text-align: center;
+		}
+		#loading img{ margin: 200px 0 20px 0; }
+		#gameover{ display: none; }
+		#gameover div{
+			width: 200px;
+			padding: 20px;
+			border: 1px solid #333;
+			margin: 150px auto 0;
+			background: rgba(211, 211, 211, 0.8);
+			font-size: 30px;
+			text-align: center;
+			line-height: 1.5;
+		}
+		#go{ font-size: 25px; display: none; }
+		#go div{ width: 200px; border: 1px solid #333; padding: 20px; margin: 200px auto 0; background: rgba(211, 211, 211, 0.8); }
+	</style>
+</head>
+<body>
+	<div id="box">
+		<canvas id="canvas" width="320" height="568"></canvas>
+		<div id="loading">
+			<img src="./img/loading.gif" alt=""><br/>
+			<span>正在加载</span>
+		</div>
+		<div id="go">
+			<div>开始游戏</div>
+		</div>
+		<div id="gameover">
+			<div>
+				<p>游戏结束</p>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="./js/json.js"></script>
+<script src="./js/index.js"></script>
+<script>
+	var canvas = document.getElementById('canvas');
+	var loading = document.getElementById('loading');// 游戏加载层
+	var gameover = document.getElementById('gameover');// 游戏结束层
+	var go = document.getElementById('go');
+	var cvs = canvas.getContext('2d');
+	var raf = null, audios = {}, images = {};
+	var i = 0, len = audio_json.length;
+	var bgOffsetY = 0, isOver = false; //bgOffsetY 背景Y值  isOver  游戏是否结束
+
+	var heroFly = new Factory(30,460,66,82,cvs); //英雄机
+
+	var bulletArr = [], bullet_type = 0, bullet_speed = 1;
+    // bulletArr 储存子弹数组    bullet_type 子弹类型   bullet_speed  子弹速度
+    var heroPos = 0, count = 0, heroSpeed = 5;
+    // heroPos 实现英雄机动画的控制值     count 一个公共数值，用来控制绘制子弹和敌机的频率  heroSpeed 英雄机的速度
+    var enemyArr = [], key = 0;//2 4 8 16
+    // enemyArr 敌机数组   key 移动方向  2:左; 4:上; 8:右; 16:下
+    var bomb = null, buff = null, scores = 0;
+    // bomb 全屏炸弹   buff  增益buff  scores  得分
+    var json = { //表示方向的json对象  左 2 上 4  右 8  下 16
+    	'37': 2, '38': 4, '39': 8, '40': 16
+    };
+
+    loadAudio(function () {
+    	i = 0; len = img_json.length;// 重置i值和把len修改为图片的长度
+    	console.log(1)
+    	loadImg(function () {
+			console.log( audios , images );
+			loading.style.display = 'none';// 当所有资源加载完成时隐藏loading层
+			go.style.display = 'block';// 当所有资源加载完成显示加载游戏
+    	})
+    })
+
+    go.onclick = function () {// 点击开始游戏
+    	audios.bgsound.loop = true;//设置背景音乐循环播放
+    	audios.bgsound.play();//点击开始游戏，播放背景音乐
+    	gameStart();//开始游戏
+    }
+
+	document.onkeydown = function(ev){ //键盘控制事件
+		var code = ev.keyCode;
+		if( code == 32 && bomb ) {clearEnemy();return false;} //如果触发全屏炸弹，清除所有敌机
+		if(code!=37&&code!=38&&code!=39&&code!=40)return; //如果按下的不是游戏控制相关的按键，则不执行任何操作
+		if(!this[code] ) key += json[code];
+		this[code] = true;
+	};
+
+	document.onkeyup = function(ev){
+		var code = ev.keyCode;
+		this[code] = false;
+		if(code!=37&&code!=38&&code!=39&&code!=40)return;
+		key -= json[code];
+	};
+
+	randBuff();
+</script>
+</html>
